@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  Bot,
   CalendarDays,
   ChefHat,
   ChevronLeft,
@@ -15,16 +14,7 @@ import {
 } from "lucide-react"
 import { useEffect, useRef } from "react"
 
-export type Tab =
-  | "today"
-  | "add"
-  | "plan"
-  | "workouts"
-  | "sleep"
-  | "trainer"
-  | "stats"
-  | "profile"
-  | "settings"
+export type Tab = "today" | "add" | "plan" | "workouts" | "sleep" | "stats" | "profile" | "settings"
 
 // Вкладки в ленте (без «Добавить» — он всегда по центру)
 const SCROLL_TABS: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
@@ -32,7 +22,6 @@ const SCROLL_TABS: { id: Tab; label: string; icon: typeof CalendarDays }[] = [
   { id: "plan", label: "Рацион", icon: ChefHat },
   { id: "workouts", label: "Трени", icon: Dumbbell },
   { id: "sleep", label: "Сон", icon: Moon },
-  { id: "trainer", label: "Тренер", icon: Bot },
   { id: "stats", label: "Стата", icon: BarChart3 },
   { id: "profile", label: "Профиль", icon: User },
   { id: "settings", label: "Настройки", icon: Settings },
