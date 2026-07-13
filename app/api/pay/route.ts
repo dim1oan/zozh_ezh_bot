@@ -12,8 +12,8 @@ const CRYPTO_PAY_API = "https://pay.crypt.bot/api"
 
 function providersAvailable() {
   return {
+    card: Boolean(process.env.BOT_TOKEN && process.env.PAYMENT_PROVIDER_TOKEN),
     stars: Boolean(process.env.BOT_TOKEN),
-    sbp: Boolean(process.env.YOOKASSA_SHOP_ID && process.env.YOOKASSA_SECRET_KEY),
     crypto: Boolean(process.env.CRYPTO_PAY_TOKEN),
   }
 }
@@ -62,36 +62,26 @@ export async function POST(req: Request) {
     return Response.json({ url: data.result, kind: "invoice" })
   }
 
-  if (method === "sbp") {
-    const shopId = process.env.YOOKASSA_SHOP_ID
-    const secret = process.env.YOOKASSA_SECRET_KEY
-    if (!shopId || !secret) return Response.json({ error: "sbp_unavailable" }, { status: 503 })
+  if (method === "card") {
+    // Карта через ЮKassa (Telegram Payments): нативный инвойс, токен из BotFather
+    const providerToken = process.env.PAYMENT_PROVIDER_TOKEN
+    if (!providerToken) return Response.json({ error: "card_unavailable" }, { status: 503 })
 
-    const res = await fetch(`${YOOKASSA_API}/payments`, {
+    const res = await fetch(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/createInvoiceLink`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Idempotence-Key": crypto.randomUUID(),
-        Authorization: `Basic ${Buffer.from(`${shopId}:${secret}`).toString("base64")}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: { value: `${SUB_PRICE_RUB}.00`, currency: "RUB" },
-        confirmation: { type: "redirect", return_url: "https://t.me" },
-        capture: true,
-        description: `Подписка FitFlow на ${SUB_DAYS} дней (tg ${tgId})`,
-        payment_method_data: { type: "sbp" },
-        metadata: { tg_id: String(tgId) },
+        title: "Подписка FitFlow",
+        description: `Все функции бота и Mini App на ${SUB_DAYS} дней`,
+        payload: `sub:card:${tgId}`,
+        provider_token: providerToken,
+        currency: "RUB",
+        prices: [{ label: "Подписка на 30 дней", amount: SUB_PRICE_RUB * 100 }],
       }),
     })
     const data = await res.json()
-    const url = data?.confirmation?.confirmation_url
-    if (!data?.id || !url) return Response.json({ error: "sbp_failed" }, { status: 502 })
-
-    const [payment] = await db
-      .insert(payments)
-      .values({ userId: tgId, provider: "sbp", externalId: data.id, amount: `${SUB_PRICE_RUB} RUB` })
-      .returning()
-    return Response.json({ url, kind: "link", paymentId: payment.id })
+    if (!data.ok) return Response.json({ error: "card_failed" }, { status: 502 })
+    return Response.json({ url: data.result, kind: "invoice" })
   }
 
   if (method === "crypto") {
@@ -131,13 +121,14 @@ export async function PUT(req: Request) {
 
   const body = await req.json().catch(() => ({}))
 
-  // Stars: openInvoice возвращает статус в колбэке — Telegram уже подтвердил платёж
-  if (body?.method === "stars" && body?.status === "paid") {
+  // Stars и карта: openInvoice возвращает статус в колбэке — Telegram уже подтвердил платёж
+  if ((body?.method === "stars" || body?.method === "card") && body?.status === "paid") {
+    const isCard = body.method === "card"
     await db.insert(payments).values({
       userId: auth.tg.tgId,
-      provider: "stars",
+      provider: isCard ? "card" : "stars",
       externalId: null,
-      amount: `${SUB_PRICE_STARS} XTR`,
+      amount: isCard ? `${SUB_PRICE_RUB} RUB` : `${SUB_PRICE_STARS} XTR`,
       status: "succeeded",
     })
     const until = await extendSubscription(auth.user.id)

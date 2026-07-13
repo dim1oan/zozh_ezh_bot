@@ -47,7 +47,6 @@ def pay_methods_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Карта (ЮKassa)", callback_data="pay:card")],
         [InlineKeyboardButton(text="⭐ Telegram Stars", callback_data="pay:stars")],
-        [InlineKeyboardButton(text="🏦 СБП (ЮKassa)", callback_data="pay:sbp")],
         [InlineKeyboardButton(text="🪙 Криптовалюта", callback_data="pay:crypto")],
     ])
 

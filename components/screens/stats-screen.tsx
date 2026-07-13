@@ -44,9 +44,9 @@ export function StatsScreen({ profile }: StatsScreenProps) {
                     fontSize: 12,
                     color: "var(--color-popover-foreground)",
                   }}
-                  formatter={(value: number) => [`${value} ккал`, "Калории"]}
-                  labelFormatter={(label: string, payload) => {
-                    const date = payload?.[0]?.payload?.date
+                  formatter={(value) => [`${value ?? 0} ккал`, "Калории"]}
+                  labelFormatter={(label, payload) => {
+                    const date = (payload?.[0]?.payload as { date?: string } | undefined)?.date
                     return date ? `${label}, ${date}` : label
                   }}
                 />

@@ -1,17 +1,17 @@
 "use client"
 
-import { Bitcoin, Landmark, Loader2, RefreshCw, Star } from "lucide-react"
+import { Bitcoin, CreditCard, Loader2, RefreshCw, Star } from "lucide-react"
 import { useState } from "react"
 import useSWR from "swr"
 import { apiFetch, getTelegramWebApp, haptic, swrFetcher } from "@/lib/telegram-client"
 
 interface PayInfo {
-  providers: { stars: boolean; sbp: boolean; crypto: boolean }
+  providers: { card: boolean; stars: boolean; crypto: boolean }
   priceRub: number
   priceStars: number
 }
 
-/** Кнопки оплаты подписки: Stars (нативно), СБП и крипта (по ссылке + проверка). */
+/** Кнопки оплаты подписки: карта ЮKassa и Stars (нативно), крипта (по ссылке + проверка). */
 export function PayButtons({ onPaid }: { onPaid?: () => void }) {
   const { data } = useSWR<PayInfo>("/api/pay", swrFetcher)
   const [busy, setBusy] = useState<string | null>(null)
@@ -21,10 +21,10 @@ export function PayButtons({ onPaid }: { onPaid?: () => void }) {
 
   const providers = data?.providers
 
-  async function confirmStarsPaid() {
+  async function confirmInvoicePaid(method: "stars" | "card") {
     const res = await apiFetch("/api/pay", {
       method: "PUT",
-      body: JSON.stringify({ method: "stars", status: "paid" }),
+      body: JSON.stringify({ method, status: "paid" }),
     })
     if (res.ok) {
       haptic("success")
@@ -32,7 +32,7 @@ export function PayButtons({ onPaid }: { onPaid?: () => void }) {
     }
   }
 
-  async function startPayment(method: "stars" | "sbp" | "crypto") {
+  async function startPayment(method: "card" | "stars" | "crypto") {
     setBusy(method)
     setMessage(null)
     try {
@@ -44,16 +44,16 @@ export function PayButtons({ onPaid }: { onPaid?: () => void }) {
       const payment = await res.json()
       const wa = getTelegramWebApp()
 
-      if (method === "stars" && payment.kind === "invoice" && wa?.openInvoice) {
-        // Нативное окно оплаты Stars поверх Mini App
+      if ((method === "stars" || method === "card") && payment.kind === "invoice" && wa?.openInvoice) {
+        // Нативное окно оплаты Telegram поверх Mini App (карта ЮKassa или Stars)
         wa.openInvoice(payment.url, (status) => {
-          if (status === "paid") void confirmStarsPaid()
+          if (status === "paid") void confirmInvoicePaid(method)
           else if (status === "failed") setMessage("Оплата не прошла. Попробуйте ещё раз.")
         })
         return
       }
 
-      // СБП / крипта — открываем ссылку, потом проверяем по кнопке
+      // Крипта — открываем ссылку, потом проверяем по кнопке
       if (payment.paymentId) setPendingPaymentId(payment.paymentId)
       if (payment.kind === "telegram_link" && wa?.openTelegramLink) wa.openTelegramLink(payment.url)
       else if (wa?.openLink) wa.openLink(payment.url)
@@ -88,22 +88,22 @@ export function PayButtons({ onPaid }: { onPaid?: () => void }) {
     <div className="flex w-full flex-col gap-2">
       <button
         type="button"
-        onClick={() => startPayment("stars")}
-        disabled={busy !== null || !providers?.stars}
+        onClick={() => startPayment("card")}
+        disabled={busy !== null || !providers?.card}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
       >
-        {busy === "stars" ? <Loader2 className="size-4 animate-spin" /> : <Star className="size-4" />}
-        {`Telegram Stars — ${data?.priceStars ?? 60} ⭐`}
+        {busy === "card" ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
+        {providers?.card ? `Карта — ${data?.priceRub ?? 100} ₽` : "Карта — скоро"}
       </button>
 
       <button
         type="button"
-        onClick={() => startPayment("sbp")}
-        disabled={busy !== null || !providers?.sbp}
+        onClick={() => startPayment("stars")}
+        disabled={busy !== null || !providers?.stars}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-semibold text-secondary-foreground disabled:opacity-50"
       >
-        {busy === "sbp" ? <Loader2 className="size-4 animate-spin" /> : <Landmark className="size-4" />}
-        {providers?.sbp ? `СБП — ${data?.priceRub ?? 100} ₽` : "СБП — скоро"}
+        {busy === "stars" ? <Loader2 className="size-4 animate-spin" /> : <Star className="size-4" />}
+        {`Telegram Stars — ${data?.priceStars ?? 60} ⭐`}
       </button>
 
       <button
