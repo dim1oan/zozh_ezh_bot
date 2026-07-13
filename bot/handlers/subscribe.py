@@ -87,36 +87,11 @@ async def cb_pay_stars(cb: CallbackQuery):
     await cb.answer()
 
 
-@router.callback_query(F.data == "pay:sbp")
-async def cb_pay_sbp(cb: CallbackQuery):
-    if not pay.yookassa_enabled():
-        await cb.answer(
-            "Оплата СБП пока не подключена. Выбери Stars или крипту.",
-            show_alert=True,
-        )
-        return
-    await cb.answer()
-    result = await pay.yookassa_create_payment(cb.from_user.id)
-    if result is None:
-        await cb.message.answer("Не удалось создать платёж СБП. Попробуй позже или выбери другой способ.")
-        return
-    payment_id = await db.create_payment(
-        cb.from_user.id, "sbp", result["id"], f"{SUB_PRICE_RUB} RUB"
-    )
-    await cb.message.answer(
-        f"🏦 Оплата через СБП — <b>{SUB_PRICE_RUB} ₽</b>.\n\n"
-        "1. Нажми «Перейти к оплате»\n"
-        "2. Выбери свой банк и подтверди платёж\n"
-        "3. Вернись и нажми «Я оплатил»",
-        reply_markup=pay_check_kb(result["url"], "sbp", payment_id),
-    )
-
-
 @router.callback_query(F.data == "pay:crypto")
 async def cb_pay_crypto(cb: CallbackQuery):
     if not pay.crypto_enabled():
         await cb.answer(
-            "Оплата криптой пока не подключена. Выбери Stars или СБП.",
+            "Оплата криптой пока не подключена. Выбери карту или Stars.",
             show_alert=True,
         )
         return
