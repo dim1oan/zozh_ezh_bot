@@ -49,5 +49,9 @@ SUB_DAYS = 30                # длительность подписки в дн
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID", "")
 YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY", "")
 
+# ЮKassa через BotFather (Telegram Payments): токен вида 390540012:LIVE:...
+# BotFather → /mybots → бот → Payments → ЮKassa
+PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "")
+
 # CryptoBot (крипта): токен из @CryptoBot → Crypto Pay → Create App
 CRYPTO_PAY_TOKEN = os.getenv("CRYPTO_PAY_TOKEN", "")

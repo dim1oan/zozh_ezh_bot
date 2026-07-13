@@ -5,7 +5,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, LabeledPrice, Message, PreCheckoutQuery
 
-from config import SUB_DAYS, SUB_PRICE_RUB, SUB_PRICE_STARS
+from config import PAYMENT_PROVIDER_TOKEN, SUB_DAYS, SUB_PRICE_RUB, SUB_PRICE_STARS
 from db import database as db
 from keyboards.inline import BTN_SUB, pay_check_kb, pay_methods_kb
 from services import payments as pay
@@ -54,6 +54,26 @@ async def cmd_subscribe(message: Message):
 
 
 # ---------- Выбор способа оплаты ----------
+
+@router.callback_query(F.data == "pay:card")
+async def cb_pay_card(cb: CallbackQuery):
+    """Оплата картой через ЮKassa (Telegram Payments, токен из BotFather)."""
+    if not PAYMENT_PROVIDER_TOKEN:
+        await cb.answer(
+            "Оплата картой пока не подключена. Выбери другой способ.",
+            show_alert=True,
+        )
+        return
+    await cb.message.answer_invoice(
+        title="Подписка FitFlow — 30 дней",
+        description="Все функции: КБЖУ, фото, голос, вода, тренировки, Mini App",
+        payload="sub:card",
+        provider_token=PAYMENT_PROVIDER_TOKEN,
+        currency="RUB",
+        prices=[LabeledPrice(label="Подписка на 30 дней", amount=SUB_PRICE_RUB * 100)],
+    )
+    await cb.answer()
+
 
 @router.callback_query(F.data == "pay:stars")
 async def cb_pay_stars(cb: CallbackQuery):
@@ -148,7 +168,7 @@ async def cb_paycheck(cb: CallbackQuery):
     await cb.answer()
 
 
-# ---------- Telegram Stars ----------
+# ---------- Telegram Payments (Stars и карта ЮKassa) ----------
 
 @router.pre_checkout_query()
 async def pre_checkout(query: PreCheckoutQuery):
@@ -158,14 +178,18 @@ async def pre_checkout(query: PreCheckoutQuery):
 @router.message(F.successful_payment)
 async def on_successful_payment(message: Message):
     sp = message.successful_payment
+    if sp.currency == "XTR":
+        provider, amount = "stars", f"{sp.total_amount} XTR"
+    else:
+        # Карта через ЮKassa: сумма приходит в копейках
+        provider, amount = "card", f"{sp.total_amount / 100:.0f} {sp.currency}"
     pid = await db.create_payment(
-        message.from_user.id, "stars", sp.telegram_payment_charge_id,
-        f"{sp.total_amount} XTR",
+        message.from_user.id, provider, sp.telegram_payment_charge_id, amount,
     )
     # Платёж от Telegram уже подтверждён — сразу помечаем и продлеваем
     await db.mark_payment(pid, "succeeded")
     until = await db.extend_subscription(message.from_user.id, SUB_DAYS)
-    log.info("Оплата Stars получена от tg %s", message.from_user.id)
+    log.info("Оплата %s получена от tg %s", provider, message.from_user.id)
     await message.answer(
         f"🎉 Оплата получена! Подписка активна до <b>{_fmt_date(until)}</b>. Спасибо!"
     )
