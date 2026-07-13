@@ -1,7 +1,9 @@
 "use client"
 
-import { Bell, Droplets, Info, Moon, Palette, Send, Sun, UtensilsCrossed } from "lucide-react"
+import { Bell, Droplets, Info, LayoutGrid, Moon, Palette, Send, Sun, UtensilsCrossed } from "lucide-react"
 import { useEffect, useState } from "react"
+import { NAV_TABS } from "@/components/bottom-nav"
+import { useNavPrefs } from "@/lib/nav-prefs"
 import { apiFetch, haptic } from "@/lib/telegram-client"
 import type { Profile } from "@/lib/types"
 
@@ -125,6 +127,7 @@ export function SettingsScreen({ profile }: SettingsScreenProps) {
   const [waterMode, setWaterMode] = useState<"auto" | "manual">(profile.waterGoalMl ? "manual" : "auto")
   const [waterMl, setWaterMl] = useState(profile.waterGoalMl ?? 2000)
   const [saving, setSaving] = useState(false)
+  const [navPrefs, setNavPrefs] = useNavPrefs()
 
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null
@@ -169,6 +172,49 @@ export function SettingsScreen({ profile }: SettingsScreenProps) {
             ]}
           />
         </Row>
+      </section>
+
+      <SectionTitle>Нижняя панель</SectionTitle>
+      <section className="divide-y divide-border overflow-hidden rounded-2xl bg-card">
+        <Row
+          icon={LayoutGrid}
+          title="Режим панели"
+          subtitle={navPrefs.mode === "scroll" ? "Вкладки листаются" : "Все кнопки на экране"}
+        >
+          <Segmented
+            value={navPrefs.mode}
+            label="Режим нижней панели"
+            onChange={(mode) => {
+              setNavPrefs({ ...navPrefs, mode })
+              haptic("light")
+            }}
+            options={[
+              { value: "scroll", label: "Листать" },
+              { value: "all", label: "Все кнопки" },
+            ]}
+          />
+        </Row>
+
+        {NAV_TABS.filter((t) => t.id !== "settings").map(({ id, label, icon: Icon }) => {
+          const visible = !navPrefs.hidden.includes(id)
+          return (
+            <Row key={id} icon={Icon} title={label} subtitle={visible ? "Показывается" : "Скрыта"}>
+              <Toggle
+                checked={visible}
+                label={`Показывать вкладку ${label}`}
+                onToggle={() => {
+                  const hidden = visible
+                    ? [...navPrefs.hidden, id]
+                    : navPrefs.hidden.filter((t) => t !== id)
+                  // Хотя бы одна вкладка кроме настроек должна остаться
+                  if (hidden.length >= NAV_TABS.length - 1) return
+                  setNavPrefs({ ...navPrefs, hidden })
+                  haptic("light")
+                }}
+              />
+            </Row>
+          )
+        })}
       </section>
 
       <SectionTitle>Напоминания</SectionTitle>
