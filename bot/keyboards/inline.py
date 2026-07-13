@@ -45,6 +45,7 @@ def sleep_dream_kb() -> InlineKeyboardMarkup:
 def pay_methods_kb() -> InlineKeyboardMarkup:
     """Выбор способа оплаты подписки."""
     return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Карта (ЮKassa)", callback_data="pay:card")],
         [InlineKeyboardButton(text="⭐ Telegram Stars", callback_data="pay:stars")],
         [InlineKeyboardButton(text="🏦 СБП (ЮKassa)", callback_data="pay:sbp")],
         [InlineKeyboardButton(text="🪙 Криптовалюта", callback_data="pay:crypto")],
