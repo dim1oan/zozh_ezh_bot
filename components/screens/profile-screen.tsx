@@ -1,96 +1,12 @@
 "use client"
 
-import { Bell, Loader2, Star } from "lucide-react"
+import { Loader2, Star } from "lucide-react"
 import { useState } from "react"
 import useSWR from "swr"
 import { PayButtons } from "@/components/pay-buttons"
 import { ACTIVITY_LEVELS, GOALS } from "@/lib/nutrition"
 import { apiFetch, haptic, swrFetcher } from "@/lib/telegram-client"
 import type { Profile } from "@/lib/types"
-
-const NOTIFY_INTERVALS = [
-  { hours: 3, label: "3 часа" },
-  { hours: 6, label: "6 часов" },
-  { hours: 12, label: "12 часов" },
-  { hours: 24, label: "24 часа" },
-]
-
-function NotificationsCard({ profile }: { profile: Profile }) {
-  const [enabled, setEnabled] = useState(profile.notifyEnabled ?? true)
-  const [hours, setHours] = useState(profile.notifyHours ?? 6)
-  const [saving, setSaving] = useState(false)
-
-  async function update(next: { notifyEnabled?: boolean; notifyHours?: number }) {
-    setSaving(true)
-    try {
-      const res = await apiFetch("/api/profile", {
-        method: "PATCH",
-        body: JSON.stringify(next),
-      })
-      if (res.ok) haptic("success")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <section className="flex flex-col gap-3 rounded-2xl bg-card p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-medium">
-          <Bell className="size-4 text-primary" />
-          {"Напоминания"}
-        </h2>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={enabled}
-          disabled={saving}
-          onClick={() => {
-            const next = !enabled
-            setEnabled(next)
-            update({ notifyEnabled: next })
-          }}
-          className={`relative h-6 w-11 rounded-full transition-colors ${enabled ? "bg-primary" : "bg-secondary"}`}
-          aria-label="Включить напоминания"
-        >
-          <span
-            className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-background transition-transform ${
-              enabled ? "translate-x-5" : "translate-x-0"
-            }`}
-          />
-        </button>
-      </div>
-
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        {"Если вы долго не записываете еду, бот напомнит. В часы сна напоминания не приходят."}
-      </p>
-
-      {enabled && (
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-medium text-muted-foreground">Напоминать после</span>
-          <div className="flex gap-1.5">
-            {NOTIFY_INTERVALS.map((it) => (
-              <button
-                key={it.hours}
-                type="button"
-                disabled={saving}
-                onClick={() => {
-                  setHours(it.hours)
-                  update({ notifyHours: it.hours })
-                }}
-                className={`flex-1 rounded-xl py-2 text-xs font-semibold transition-colors ${
-                  hours === it.hours ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-                }`}
-              >
-                {it.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
 
 interface SubscriptionInfo {
   active: boolean
@@ -199,7 +115,6 @@ export function ProfileScreen({ profile, onboarding = false, onSaved }: ProfileS
   return (
     <div className="flex flex-col gap-4 pb-24">
       {!onboarding && <SubscriptionCard />}
-      {!onboarding && <NotificationsCard profile={profile} />}
 
       {onboarding && (
         <section className="rounded-2xl bg-card p-4">
