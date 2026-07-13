@@ -11,8 +11,8 @@ import { ProfileScreen } from "@/components/screens/profile-screen"
 import { SettingsScreen } from "@/components/screens/settings-screen"
 import { SleepScreen } from "@/components/screens/sleep-screen"
 import { StatsScreen } from "@/components/screens/stats-screen"
-import { TrainerScreen } from "@/components/screens/trainer-screen"
 import { TodayScreen } from "@/components/screens/today-screen"
+import { TrainerFab } from "@/components/trainer-fab"
 import { WorkoutsScreen } from "@/components/screens/workouts-screen"
 import { getInitData, getTelegramWebApp, swrFetcher } from "@/lib/telegram-client"
 import type { Profile } from "@/lib/types"
@@ -23,7 +23,6 @@ const TAB_TITLES: Record<Tab, string> = {
   plan: "Рацион на день",
   workouts: "Тренировки",
   sleep: "Сон",
-  trainer: "AI-тренер",
   stats: "Статистика",
   profile: "Профиль",
   settings: "Настройки",
@@ -110,12 +109,12 @@ export function MiniApp() {
         {tab === "plan" && <PlanScreen />}
         {tab === "workouts" && <WorkoutsScreen />}
         {tab === "sleep" && <SleepScreen profile={profile} />}
-        {tab === "trainer" && <TrainerScreen />}
         {tab === "stats" && <StatsScreen profile={profile} />}
         {tab === "profile" && <ProfileScreen profile={profile} onSaved={(p) => mutate({ profile: p })} />}
         {tab === "settings" && <SettingsScreen profile={profile} />}
       </main>
 
+      <TrainerFab />
       <BottomNav active={tab} onChange={setTab} />
     </div>
   )
