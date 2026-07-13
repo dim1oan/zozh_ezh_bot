@@ -14,7 +14,7 @@ export interface NavPrefs {
 const STORAGE_KEY = "nav-prefs"
 const EVENT = "nav-prefs-changed"
 
-const DEFAULT_PREFS: NavPrefs = { mode: "scroll", hidden: [] }
+const DEFAULT_PREFS: NavPrefs = { mode: "all", hidden: [] }
 
 function readPrefs(): NavPrefs {
   try {
@@ -22,7 +22,7 @@ function readPrefs(): NavPrefs {
     if (!raw) return DEFAULT_PREFS
     const parsed = JSON.parse(raw) as Partial<NavPrefs>
     return {
-      mode: parsed.mode === "all" ? "all" : "scroll",
+      mode: parsed.mode === "scroll" ? "scroll" : "all",
       hidden: Array.isArray(parsed.hidden) ? (parsed.hidden.filter((t) => t !== "settings") as Tab[]) : [],
     }
   } catch {
