@@ -72,14 +72,14 @@ export function TrainerFab() {
             haptic("light")
           }}
           aria-label="Открыть чат с ёжиком-тренером"
-          className="fixed bottom-24 right-4 z-30 flex size-14 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-lg shadow-primary/30 transition-transform active:scale-95"
+          className="fixed bottom-24 right-4 z-30 flex size-14 items-center justify-center overflow-hidden rounded-2xl border border-primary/40 bg-card shadow-lg shadow-primary/30 transition-transform active:scale-95"
         >
           <Image
             src="/images/trainer-hedgehog.png"
             alt=""
-            width={48}
-            height={48}
-            className="size-12 object-contain"
+            width={56}
+            height={56}
+            className="size-full scale-[1.8] object-cover"
           />
         </button>
       )}
@@ -94,13 +94,13 @@ export function TrainerFab() {
         >
           {/* Шапка */}
           <header className="flex items-center gap-3 border-b border-border px-4 py-3">
-            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/15">
+            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card">
               <Image
                 src="/images/trainer-hedgehog.png"
                 alt=""
-                width={36}
-                height={36}
-                className="size-9 object-contain"
+                width={40}
+                height={40}
+                className="size-full scale-[1.8] object-cover"
               />
             </span>
             <div className="min-w-0 flex-1">
@@ -121,13 +121,13 @@ export function TrainerFab() {
           <div className="flex-1 overflow-y-auto p-4">
             {messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-                <span className="flex size-20 items-center justify-center overflow-hidden rounded-3xl bg-primary/15">
+                <span className="flex size-20 items-center justify-center overflow-hidden rounded-3xl bg-card">
                   <Image
                     src="/images/trainer-hedgehog.png"
                     alt="Ёжик-тренер"
-                    width={72}
-                    height={72}
-                    className="size-18 object-contain"
+                    width={80}
+                    height={80}
+                    className="size-full scale-[1.8] object-cover"
                   />
                 </span>
                 <div>
