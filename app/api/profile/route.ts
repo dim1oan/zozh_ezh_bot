@@ -62,16 +62,19 @@ export async function PUT(req: Request) {
 
 const NOTIFY_HOURS_ALLOWED = [3, 6, 12, 24]
 
-/** PATCH /api/profile — настройки напоминаний { notifyEnabled?, notifyHours? } */
+/** PATCH /api/profile — настройки { notifyEnabled?, notifyHours?, waterGoalMl? (null = авто) } */
 export async function PATCH(req: Request) {
   const auth = await authFromRequest(req)
   if (!auth) return Response.json({ error: "unauthorized" }, { status: 401 })
 
   const body = await req.json()
-  const set: { notifyEnabled?: boolean; notifyHours?: number } = {}
+  const set: { notifyEnabled?: boolean; notifyHours?: number; waterGoalMl?: number | null } = {}
 
   if (typeof body?.notifyEnabled === "boolean") set.notifyEnabled = body.notifyEnabled
   if (NOTIFY_HOURS_ALLOWED.includes(Number(body?.notifyHours))) set.notifyHours = Number(body.notifyHours)
+  if ("waterGoalMl" in (body ?? {})) {
+    set.waterGoalMl = body.waterGoalMl === null ? null : Math.min(Math.max(Number(body.waterGoalMl) || 0, 500), 6000)
+  }
 
   if (Object.keys(set).length === 0) {
     return Response.json({ error: "nothing to update" }, { status: 400 })

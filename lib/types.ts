@@ -41,6 +41,7 @@ export interface Profile {
   carbTarget: number | null
   notifyEnabled: boolean | null
   notifyHours: number | null
+  waterGoalMl: number | null
 }
 
 export interface DayReport {

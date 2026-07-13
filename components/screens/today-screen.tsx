@@ -50,7 +50,7 @@ export function TodayScreen({ profile }: TodayScreenProps) {
         </div>
       </section>
 
-      <WaterCard targetMl={profile.weight ? Math.round(profile.weight * 30) : 2000} />
+      <WaterCard targetMl={profile.waterGoalMl ?? (profile.weight ? Math.round(profile.weight * 30) : 2000)} />
 
       {isLoading && <p className="py-6 text-center text-sm text-muted-foreground">Загрузка...</p>}
 

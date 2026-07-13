@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   paidUntil: timestamp("paid_until", { withTimezone: true }),
   notifyEnabled: boolean("notify_enabled").default(true),
   notifyHours: integer("notify_hours").default(6),
+  waterGoalMl: real("water_goal_ml"),
   lastActive: timestamp("last_active", { withTimezone: true }),
   lastNotified: timestamp("last_notified", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
